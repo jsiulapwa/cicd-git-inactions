@@ -1,9 +1,16 @@
 name: deploy terraform code
 
 on:
-  pull_request:
-    branches: [ main ]
-
+  workflow_dispatch:   # Allows manual triggering of the workflow from the GitHub Actions tab
+    inputs:
+      action:
+        description: 'Choose an action to perform'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+          - apply
+          - destroy
 jobs:
   deploy:     
     runs-on: ubuntu-latest   # Use the latest Ubuntu runner, creates virtual environment for the job
@@ -31,4 +38,9 @@ jobs:
         run: terraform plan
 
       - name: Apply Terraform configuration
+        if: ${{ github.event.inputs.action == 'apply' }}
         run: terraform apply -auto-approve
+
+      - name: Destroy Terraform resources
+        if: ${{ github.event.inputs.action == 'destroy' }}
+        run: terraform destroy -auto-approve
